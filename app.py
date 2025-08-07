@@ -13,14 +13,19 @@ import re
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+# Initialize logging first
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN_BOT")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-CREDS_JSON = os.getenv("SHEETS_CREDS")
+SHEETS_CREDS = os.getenv("SHEETS_CREDS")
 CUSTOMERS_JSON = os.getenv("CUSTOMERS_JSON")
 SHEET_NAME = "9_ტონა_ფული"
 WORKSHEET_NAME = "Payments"
 
-if not TELEGRAM_TOKEN or not OPENAI_API_KEY or not CREDS_JSON or not CUSTOMERS_JSON:
+if not TELEGRAM_TOKEN or not OPENAI_API_KEY or not SHEETS_CREDS or not CUSTOMERS_JSON:
+    logger.error("Missing required environment variables")
     raise ValueError("Environment variables must be set")
 
 try:
@@ -31,11 +36,8 @@ except Exception as e:
     raise
 
 SCOPE = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-CREDS = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(CREDS_JSON), SCOPE)
+CREDS = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(SHEETS_CREDS), SCOPE)
 CLIENT = gspread.authorize(CREDS)
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class PaymentBot:
     def __init__(self) -> None:
